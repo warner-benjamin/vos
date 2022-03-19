@@ -184,7 +184,7 @@ def log_sum_exp(value, dim=None, keepdim=False):
 
 def train(epoch):
     net.train()  # enter train mode
-    loss_avg = 0.0
+    loss_avg, lr_loss_avg = 0.0, 0.0
     for data, target in train_loader:
         data, target = data.cuda(), target.cuda()
 
@@ -255,8 +255,6 @@ def train(epoch):
                 output1 = logistic_regression(input_for_lr.view(-1, 1))
                 lr_reg_loss = criterion(output1, labels_for_lr.long())
 
-                if epoch % 5 == 0:
-                    print(lr_reg_loss)
         else:
             target_numpy = target.cpu().data.numpy()
             for index in range(len(target)):
@@ -264,7 +262,7 @@ def train(epoch):
                 if number_dict[dict_key] < args.sample_number:
                     data_dict[dict_key][number_dict[dict_key]] = output[index].detach()
                     number_dict[dict_key] += 1
-
+            
         # backward
 
         optimizer.zero_grad()
@@ -278,8 +276,10 @@ def train(epoch):
 
         # exponential moving average
         loss_avg = loss_avg * 0.8 + float(loss) * 0.2
+        lr_loss_avg = lr_loss_avg * 0.8 + float(lr_reg_loss) * 0.2
 
     state['train_loss'] = loss_avg
+    state['train_vos_loss'] = lr_loss_avg
 
 
 # test function
@@ -355,10 +355,11 @@ for epoch in range(start_epoch, args.epochs):
                                       '_' + str(args.sample_number) + '_' + str(args.start_epoch) + '_' + \
                                       str(args.select) + '_' + str(args.sample_from) +
                                       '_baseline_training_results.csv'), 'a') as f:
-        f.write('%03d,%05d,%0.6f,%0.5f,%0.2f\n' % (
+        f.write('%03d,%05d,%0.6f,%0.6f,%0.5f,%0.2f\n' % (
             (epoch + 1),
             time.time() - begin_epoch,
             state['train_loss'],
+            state['train_vos_loss'],
             state['test_loss'],
             100 - 100. * state['test_accuracy'],
         ))
@@ -366,10 +367,11 @@ for epoch in range(start_epoch, args.epochs):
     # # print state with rounded decimals
     # print({k: round(v, 4) if isinstance(v, float) else v for k, v in state.items()})
 
-    print('Epoch {0:3d} | Time {1:5d} | Train Loss {2:.4f} | Test Loss {3:.3f} | Test Error {4:.2f}'.format(
+    print('Epoch {0:3d} | Time {1:5d} | Train Loss {2:.4f} | VOS Loss {2:.4f} | Test Loss {3:.3f} | Test Error {4:.2f}'.format(
         (epoch + 1),
         int(time.time() - begin_epoch),
         state['train_loss'],
+        state['train_vos_loss'],
         state['test_loss'],
         100 - 100. * state['test_accuracy'])
     )
