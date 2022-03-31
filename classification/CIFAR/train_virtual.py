@@ -341,11 +341,21 @@ for epoch in range(start_epoch, args.epochs):
                             '_baseline'  + '_' + str(args.loss_weight) + \
                              '_' + str(args.sample_number)+ '_' + str(args.start_epoch) + '_' +\
                             str(args.select) + '_' + str(args.sample_from) + '_' + 'epoch_'  + str(epoch) + '.pt'))
+    torch.save((weight_energy, logistic_regression),
+               os.path.join(args.save, args.dataset + calib_indicator + '_' + args.model +
+                            '_baseline'  + '_' + str(args.loss_weight) + \
+                             '_' + str(args.sample_number)+ '_' + str(args.start_epoch) + '_' +\
+                            str(args.select) + '_' + str(args.sample_from) + '_weight_log_reg_' + 'epoch_'  + str(epoch) + '.pt'))
     # Let us not waste space and delete the previous model
     prev_path = os.path.join(args.save, args.dataset + calib_indicator + '_' + args.model +
                              '_baseline' + '_' + str(args.loss_weight) + \
                              '_' + str(args.sample_number)+ '_' + str(args.start_epoch) + '_' +\
                             str(args.select) + '_' + str(args.sample_from)  + '_' + 'epoch_' + str(epoch - 1) + '.pt')
+    if os.path.exists(prev_path): os.remove(prev_path)
+    prev_path = os.path.join(args.save, args.dataset + calib_indicator + '_' + args.model +
+                             '_baseline' + '_' + str(args.loss_weight) + \
+                             '_' + str(args.sample_number)+ '_' + str(args.start_epoch) + '_' +\
+                            str(args.select) + '_' + str(args.sample_from)  + '_weight_log_reg_' + 'epoch_' + str(epoch - 1) + '.pt')
     if os.path.exists(prev_path): os.remove(prev_path)
 
     # Show results
